@@ -1,0 +1,15 @@
+# default file to serve when a directory is requested
+DirectoryIndex index.php
+
+# enable apache re-write engine
+RewriteEngine on
+
+# set your re-write base
+RewriteBase /
+
+# deliver the folder or file directly if it exists on the server
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# push every request to index.php
+RewriteRule ^(.*)$ /index.php [QSA]
