@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Http\Controllers;
+
+use Lapetus\Request;
 
 class PostController
 {
@@ -14,7 +16,7 @@ class PostController
     echo 'PostController::index';
   }
 
-  public function show()
+  public function show(Request $request, $id)
   {
     echo 'PostController::show';
   }

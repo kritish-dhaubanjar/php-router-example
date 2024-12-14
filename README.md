@@ -3,7 +3,7 @@
 ```php
 <?php
 
-use App\Route;
+use Lapetus\Route;
 use App\Controllers\PostController;
 
 Route::get('/posts', [PostController::class, 'index']);

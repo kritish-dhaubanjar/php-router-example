@@ -4,8 +4,12 @@
   "type": "project",
   "autoload": {
     "psr-4": {
-      "App\\": "app/"
-    }
+      "App\\": "app/",
+      "Lapetus\\": "lapetus/"
+    },
+    "files": [
+      "lapetus/Support/helpers.php"
+    ]
   },
   "authors": [
     {

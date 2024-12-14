@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Lapetus\Routing;
 
 class Route
 {

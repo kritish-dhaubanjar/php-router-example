@@ -1,6 +1,8 @@
 <?php
 
-namespace App;
+namespace Lapetus\Routing;
+
+use Lapetus\Request;
 
 class Router
 {
@@ -15,13 +17,13 @@ class Router
     [$handler, $arguments] = self::match($routes, $path);
 
     if (is_callable($handler)) {
-      call_user_func($handler, ...$arguments);
+      call_user_func($handler, new Request(), ...$arguments);
       return;
     }
 
     if (is_array($handler)) {
       [$class, $method] = $handler;
-      call_user_func_array([new $class(), $method], ...$arguments);
+      call_user_func_array([new $class(), $method], array_merge(new Request(), ...$arguments));
       return;
     }
 
