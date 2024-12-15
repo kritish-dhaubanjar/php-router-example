@@ -3,11 +3,19 @@
 namespace Lapetus\Routing;
 
 use Lapetus\Request;
+use Lapetus\Exception\RouteNotFoundException;
 
 class Router
 {
-  public function __construct()
+  private $handler;
+  private $arguments;
+
+  private Request $request;
+
+  public function __construct(Request $request)
   {
+    $this->request = $request;
+
     $method = $_SERVER['REQUEST_METHOD'];
     $uri = parse_url($_SERVER['REQUEST_URI']);
     $path = rtrim($uri['path'], '/');
@@ -16,24 +24,32 @@ class Router
 
     [$handler, $arguments] = self::match($routes, $path);
 
-    if (is_callable($handler)) {
-      call_user_func($handler, new Request(), ...$arguments);
+    $this->handler = $handler;
+    $this->arguments = $arguments;
+  }
+
+  public function resolve()
+  {
+    if (is_callable($this->handler)) {
+      call_user_func($this->handler, $this->request, ...$this->arguments);
       return;
     }
 
-    if (is_array($handler)) {
-      [$class, $method] = $handler;
-      call_user_func_array([new $class(), $method], array_merge(new Request(), ...$arguments));
+    if (is_array($this->handler)) {
+      [$class, $method] = $this->handler;
+      call_user_func_array([new $class(), $method], array_merge([$this->request, ...$this->arguments]));
       return;
     }
 
-    echo "NotFoundHttpException";
+    throw new RouteNotFoundException();
   }
 
   private static function match(array $routes, string $path)
   {
-    if (array_key_exists($path, $routes)) {
-      return [$routes[$path], []];
+    foreach ($routes as $route => $handler) {
+      if (rtrim($route, '/') === $path) {
+        return [$handler, []];
+      }
     }
 
     $pattern = '/\{(.*)\}/';

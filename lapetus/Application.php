@@ -2,17 +2,21 @@
 
 namespace Lapetus;
 
-use Lapetus\Database\Database;
 use Lapetus\Support\Env;
 use Lapetus\Routing\Router;
+use Lapetus\Database\Database;
+use Lapetus\Support\Config;
 
 class Application
 {
-  private Env $env;
-  private Database $DB;
   private array $path;
-  private array $config;
-  private Router $router;
+
+  public Env $env;
+  public Database $DB;
+  public Router $router;
+  public Config $config;
+  public Request $request;
+  public Response $response;
 
   public static Application $application;
 
@@ -43,15 +47,32 @@ class Application
       require_once $value;
     }
 
-    self::$application->router = new Router();
+    self::$application->request = new Request();
+    self::$application->response = new Response();
+    self::$application->router = new Router(self::$application->request);
+
+    try {
+      self::$application->router->resolve();
+    } catch (\Exception $exception) {
+
+      if (!config('app.debug')) {
+        $exception = null;
+      }
+
+      return response()->statusCode(404)->view('error', $exception);
+    }
   }
 
   public function setPaths(String $path)
   {
     $this->path['app'] = $path;
+    $this->path['.env'] = $path . DIRECTORY_SEPARATOR . ".env";
     $this->path['config'] = $path . DIRECTORY_SEPARATOR . "config";
     $this->path['database'] = $path . DIRECTORY_SEPARATOR . "database";
-    $this->path['.env'] = $path . DIRECTORY_SEPARATOR . ".env";
+    $this->path['resources'] = $path . DIRECTORY_SEPARATOR . "resources";
+
+    $this->path['views'] = $this->path['resources'] . DIRECTORY_SEPARATOR . "views";
+    $this->path['migrations'] = $this->path['database'] . DIRECTORY_SEPARATOR . "migrations";
   }
 
   private function setEnvironment()
@@ -61,28 +82,13 @@ class Application
 
   private function setConfigurations()
   {
-    $files = scandir($this->path['config']);
-    $config = [];
-
-    foreach ($files as $file) {
-      $extension = pathinfo($file, PATHINFO_EXTENSION);
-      $filename = pathinfo($file, PATHINFO_FILENAME);
-
-      if ($extension !== 'php') {
-        continue;
-      }
-
-      $config[$filename] = include($this->path['config'] . DIRECTORY_SEPARATOR . $file);
-    }
-
-    $this->config = $config;
+    $this->config = Config::configure($this->path['config']);
   }
 
   private function setDatabase()
   {
-    $database = $this->config['database'];
-    $driver = $database['default'];
-    $connections = $database['connections'];
+    $driver = config('database.default');
+    $connections = config("database.connections");
 
     $config = $connections[$driver];
 

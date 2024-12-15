@@ -1,8 +1,7 @@
 <?php
 
-use Lapetus\Support\Env;
-
 return [
-  'name' => Env::get('APP_NAME', 'Lapetus'),
-  'url' => Env::get('APP_URL', 'http://localhost'),
+  'name' => env('APP_NAME', 'Lapetus'),
+  'url' => env('APP_URL', 'http://localhost'),
+  'debug' => env('APP_DEBUG', true),
 ];
